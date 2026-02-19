@@ -1,4 +1,4 @@
-import { getBaseUrl, getDisplayTemplateId } from '../config';
+import { getBaseUrl, getDisplayTemplateId, getApiBasePath } from '../config';
 
 export function getApiBaseUrl(): string {
   const baseUrl = getBaseUrl();
@@ -49,7 +49,7 @@ export async function fetchDisplayTemplate(): Promise<DisplayTemplateConfig | nu
     const proxyParams = new URLSearchParams();
     proxyParams.append('path', path);
 
-    const url = `/api/voyager-proxy?${proxyParams.toString()}`;
+    const url = `${getApiBasePath()}/api/voyager-proxy?${proxyParams.toString()}`;
 
     const response = await fetch(url, {
       method: 'GET',
@@ -94,7 +94,7 @@ async function fetchVoyagerAPI(
       });
     }
 
-    const url = `/api/voyager-proxy?${proxyParams.toString()}`;
+    const url = `${getApiBasePath()}/api/voyager-proxy?${proxyParams.toString()}`;
 
     let options: RequestInit = {
       method,
@@ -243,7 +243,7 @@ export async function fetchFacetMetadata(): Promise<FacetField[]> {
     const proxyParams = new URLSearchParams();
     proxyParams.append('path', path);
 
-    const url = `/api/voyager-proxy?${proxyParams.toString()}`;
+    const url = `${getApiBasePath()}/api/voyager-proxy?${proxyParams.toString()}`;
     const response = await fetch(url, {
       method: 'GET',
       headers: {

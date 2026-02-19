@@ -62,6 +62,11 @@ export function setStandardsApiUrl(url: string): void {
   }
 }
 
+export function getApiBasePath(): string {
+  const base = import.meta.env.BASE_URL || '/';
+  return base.replace(/\/$/, '');
+}
+
 export const config = {
   voyagerApiUrl: `${voyagerConfig.baseUrl}solr/v0`,
 };

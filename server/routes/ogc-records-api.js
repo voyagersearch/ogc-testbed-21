@@ -1,12 +1,9 @@
 import { readFileSync } from 'fs';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { resolve } from 'path';
 import { Router } from 'express';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
 function loadConfig() {
-  const configPath = resolve(__dirname, '../../config/voyager.json');
+  const configPath = resolve(process.cwd(), 'config/voyager.json');
   return JSON.parse(readFileSync(configPath, 'utf-8'));
 }
 
@@ -89,7 +86,7 @@ function transformVoyagerToOGCRecord(doc, baseUrl) {
 
   let thumbnailUrl = null;
   if (doc.hasPreview && doc.path_to_preview) {
-    thumbnailUrl = `${config.voyager.thumbnailBaseUrl}${doc.path_to_preview}`;
+    thumbnailUrl = `${config.baseUrl.replace(/\/$/, '')}${doc.path_to_preview}`;
   } else if (doc.thumb) {
     thumbnailUrl = doc.thumb;
   }

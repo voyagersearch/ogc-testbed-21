@@ -7,7 +7,7 @@ import { VoyagerInterface } from './components/VoyagerInterface';
 import { STACBrowserInterface } from './components/STACBrowserInterface';
 import { RecordsBrowserInterface } from './components/RecordsBrowserInterface';
 import { searchVoyager, fetchFacets, buildQueryUrl, fetchDisplayTemplate } from './services/voyagerApi';
-import { getBaseUrl, setBaseUrl, getDisplayTemplateId, setDisplayTemplateId, getTransformApiUrl, setTransformApiUrl, getStandardsApiUrl, setStandardsApiUrl } from './config';
+import { getBaseUrl, setBaseUrl, getDisplayTemplateId, setDisplayTemplateId, getTransformApiUrl, setTransformApiUrl, getStandardsApiUrl, setStandardsApiUrl, getApiBasePath } from './config';
 import { transformVoyagerResponseToSTAC } from './services/stacTransform';
 import { transformVoyagerToOGCRecord } from './services/recordsTransform';
 
@@ -314,8 +314,8 @@ function App() {
       {state.interfaceMode === 'home' ? (
         <ApiLandingPage
           voyagerApiUrl={`${state.baseUrl}api/rest`}
-          stacApiUrl="/api/stac-api"
-          recordsApiUrl="/api/ogc-records-api"
+          stacApiUrl={`${getApiBasePath()}/api/stac-api`}
+          recordsApiUrl={`${getApiBasePath()}/api/ogc-records-api`}
         />
       ) : state.interfaceMode === 'voyager' ? (
         <VoyagerInterface
@@ -346,8 +346,8 @@ function App() {
           isLoadingMore={state.isLoadingMore}
           error={state.error}
           baseUrl={state.baseUrl}
-          stacApiUrl="/api/stac-api"
-          recordsApiUrl="/api/ogc-records-api"
+          stacApiUrl={`${getApiBasePath()}/api/stac-api`}
+          recordsApiUrl={`${getApiBasePath()}/api/ogc-records-api`}
           onLoadMore={handleLoadMore}
         />
       ) : (
@@ -363,7 +363,7 @@ function App() {
           showFacetJson={state.showFacetJson}
           showResultsJson={state.showResultsJson}
           fullResponse={state.fullResponse}
-          recordsApiUrl="/api/ogc-records-api"
+          recordsApiUrl={`${getApiBasePath()}/api/ogc-records-api`}
           onFacetChange={handleFacetChange}
           onToggleJsonDisplay={toggleJsonDisplay}
           onCopyJson={handleCopyJson}

@@ -1,3 +1,5 @@
+import { getApiBasePath } from '../config';
+
 export interface VoyagerPreviewData {
   id?: string;
   format?: string;
@@ -25,7 +27,7 @@ export function generateVoyagerThumbnailUrl(doc: VoyagerPreviewData, baseUrl?: s
       params.append('baseUrl', baseUrl);
     }
 
-    const thumbnailUrl = `/api/voyager-proxy?${params.toString()}`;
+    const thumbnailUrl = `${getApiBasePath()}/api/voyager-proxy?${params.toString()}`;
 
     return thumbnailUrl;
   } catch (error) {

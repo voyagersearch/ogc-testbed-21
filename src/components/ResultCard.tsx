@@ -2,6 +2,7 @@ import { Image, Sparkles } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { generateVoyagerThumbnailUrl } from '../utils/thumbnailGenerator';
 import { fetchStandards, type Standard } from '../services/standardsApi';
+import { getApiBasePath } from '../config';
 
 interface ResultCardProps {
   result: any;
@@ -15,7 +16,7 @@ export function ResultCard({ result, isSelected = false, onClick, transformApiUr
   const generatedThumbnail = generateVoyagerThumbnailUrl(result, baseUrl);
   const thumbnail = generatedThumbnail || result.thumb || result.thumbnail || result.image || null;
   const title = result.name || result.title || result.id || 'Untitled';
-  const hasThumbnail = thumbnail && typeof thumbnail === 'string' && (thumbnail.startsWith('http') || thumbnail.startsWith('/api/'));
+  const hasThumbnail = thumbnail && typeof thumbnail === 'string' && (thumbnail.startsWith('http') || thumbnail.startsWith(`${getApiBasePath()}/api/`));
   const [showTransformed, setShowTransformed] = useState(false);
   const [transformedData, setTransformedData] = useState<any>(null);
   const [isTransforming, setIsTransforming] = useState(false);
@@ -65,7 +66,7 @@ export function ResultCard({ result, isSelected = false, onClick, transformApiUr
     setTransformError(null);
 
     try {
-      const apiUrl = transformApiUrl || '/api/transform';
+      const apiUrl = transformApiUrl || `${getApiBasePath()}/api/transform`;
 
       const response = await fetch(apiUrl, {
         method: 'POST',

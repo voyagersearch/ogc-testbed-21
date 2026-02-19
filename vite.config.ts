@@ -5,14 +5,29 @@ import { resolve } from 'path';
 
 const config = JSON.parse(readFileSync(resolve(__dirname, 'config/voyager.json'), 'utf-8'));
 const voyagerBaseUrl = config.baseUrl.replace(/\/$/, '');
-const thumbnailBaseUrl = config.voyager.thumbnailBaseUrl;
+const basePath = (config.server.basePath || '').replace(/\/$/, '');
+const port = config.server.port || 5002;
 
 export default defineConfig({
+  base: basePath ? `${basePath}/` : '/',
+  server: {
+    port,
+  },
   plugins: [
     react(),
     {
       name: 'api-proxy',
       configureServer(server) {
+        // Strip basePath prefix from API requests so /ogc-testbed-21/api/... → /api/...
+        if (basePath) {
+          server.middlewares.use((req, _res, next) => {
+            if (req.url?.startsWith(`${basePath}/api/`)) {
+              req.url = req.url.slice(basePath.length);
+            }
+            next();
+          });
+        }
+
         // Voyager proxy
         server.middlewares.use('/api/voyager-proxy', async (req, res) => {
           try {
@@ -23,8 +38,6 @@ export default defineConfig({
             let baseUrl = voyagerBaseUrl;
             if (customBaseUrl) {
               baseUrl = customBaseUrl.endsWith('/') ? customBaseUrl.slice(0, -1) : customBaseUrl;
-            } else if (targetPath.startsWith('/voyager/api/rest/content')) {
-              baseUrl = thumbnailBaseUrl;
             }
 
             const params = new URLSearchParams(url.searchParams);

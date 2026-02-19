@@ -1,28 +1,27 @@
 import { readFileSync } from 'fs';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import { resolve } from 'path';
 
 function loadConfig() {
-  const configPath = resolve(__dirname, '../../config/voyager.json');
+  const configPath = resolve(process.cwd(), 'config/voyager.json');
   return JSON.parse(readFileSync(configPath, 'utf-8'));
 }
 
 export function handleVoyagerProxy(req, res) {
   const config = loadConfig();
-  const targetPath = req.query.path || '/solr/v0/select';
-  const customBaseUrl = req.query.baseUrl;
+
+  // Use the raw query string to preserve repeated params (e.g. multiple facet.field values)
+  const rawQuery = new URL(req.url, 'http://localhost').search;
+  const params = new URLSearchParams(rawQuery);
+
+  const targetPath = params.get('path') || '/solr/v0/select';
+  const customBaseUrl = params.get('baseUrl');
 
   let voyagerBaseUrl = config.baseUrl.replace(/\/$/, '');
 
   if (customBaseUrl) {
     voyagerBaseUrl = customBaseUrl.endsWith('/') ? customBaseUrl.slice(0, -1) : customBaseUrl;
-  } else if (targetPath.startsWith('/voyager/api/rest/content')) {
-    voyagerBaseUrl = config.voyager.thumbnailBaseUrl;
   }
 
-  const params = new URLSearchParams(req.query);
   params.delete('path');
   params.delete('baseUrl');
   const queryString = params.toString();
