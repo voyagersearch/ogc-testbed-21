@@ -1,0 +1,21 @@
+{
+  "baseUrl": "https://ogc-sdi.voyagersearch.com/",
+  "voyager": {
+    "displayTemplateId": "D187992491DF",
+    "solrPath": "/solr/v0",
+    "thumbnailBaseUrl": "https://voyager.fas.usda.gov"
+  },
+  "transformApi": {
+    "url": "https://5d1fdadf-2421-4bad-b325-331537848150.spock.prod.repl.run/api/transform"
+  },
+  "standardsApi": {
+    "url": "https://voyager-rulesengine-shruti41.replit.app/api/standards"
+  },
+  "pagination": {
+    "defaultPageSize": 48,
+    "defaultSort": "bytes desc"
+  },
+  "server": {
+    "port": 3001
+  }
+}

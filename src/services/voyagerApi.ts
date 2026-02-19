@@ -44,14 +44,12 @@ interface FacetField {
 export async function fetchDisplayTemplate(): Promise<DisplayTemplateConfig | null> {
   try {
     const templateId = getDisplayTemplateId();
-    const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voyager-proxy`;
     const path = `/api/rest/display/config/${templateId}`;
 
     const proxyParams = new URLSearchParams();
     proxyParams.append('path', path);
 
-    const url = `${proxyUrl}?${proxyParams.toString()}`;
-    console.log('Fetching display template via proxy:', url);
+    const url = `/api/voyager-proxy?${proxyParams.toString()}`;
 
     const response = await fetch(url, {
       method: 'GET',
@@ -67,7 +65,6 @@ export async function fetchDisplayTemplate(): Promise<DisplayTemplateConfig | nu
     }
 
     const data = await response.json();
-    console.log('Display template data:', data);
     return data;
   } catch (error) {
     console.error('Error fetching display template:', error);
@@ -81,9 +78,6 @@ async function fetchVoyagerAPI(
   method: 'GET' | 'POST' = 'GET'
 ): Promise<VoyagerResponse> {
   try {
-    console.log('Environment variables:', import.meta.env);
-
-    const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voyager-proxy`;
     let path = `/solr/v0${endpoint}`;
 
     const proxyParams = new URLSearchParams();
@@ -100,8 +94,7 @@ async function fetchVoyagerAPI(
       });
     }
 
-    const url = `${proxyUrl}?${proxyParams.toString()}`;
-    console.log('Fetching via proxy:', url);
+    const url = `/api/voyager-proxy?${proxyParams.toString()}`;
 
     let options: RequestInit = {
       method,
@@ -117,9 +110,6 @@ async function fetchVoyagerAPI(
 
     const response = await fetch(url, options);
 
-    console.log('Response status:', response.status);
-    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
       const text = await response.text();
@@ -132,7 +122,6 @@ async function fetchVoyagerAPI(
     if (!response.ok) {
       console.error('Error response:', data);
       if (data.response && data.response.docs) {
-        console.log('API returned 400 but has valid data, using it anyway');
         return data;
       }
       throw new Error(`API request failed: ${response.status} ${response.statusText}`);
@@ -238,8 +227,6 @@ export async function searchVoyager(
     rows,
     start,
     wt: 'json',
-    // Original restricted field list (saved for potential revert):
-    // fl: 'id,title,name:[name],format,abstract,fullpath:[absolute],absolute_path:[absolute],thumb:[thumbURL],path_to_thumb,subject,download:[downloadURL],format_type,bytes,modified,shard:[shard],bbox,geo:[geo],format_category,component_files,ags_fused_cache,linkcount__children,contains_name,wms_layer_name,tag_flags,hasMissingData,layerURL:[lyrURL],hasLayerFile,likes,dislikes,grp_Country,fl_views,views,description,keywords,fd_acquisition_date,name,name_alias,tag_tags,fd_publish_date,grp_Agency,fs_english_name,fs_title,fs_product_detail_link',
     fl: '*,thumb:[thumbURL]',
     'extent.bbox': 'true',
     'block': 'true',
@@ -251,13 +238,12 @@ export async function searchVoyager(
 
 export async function fetchFacetMetadata(): Promise<FacetField[]> {
   try {
-    const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voyager-proxy`;
     const path = `/api/rest/i18n/fields`;
 
     const proxyParams = new URLSearchParams();
     proxyParams.append('path', path);
 
-    const url = `${proxyUrl}?${proxyParams.toString()}`;
+    const url = `/api/voyager-proxy?${proxyParams.toString()}`;
     const response = await fetch(url, {
       method: 'GET',
       headers: {

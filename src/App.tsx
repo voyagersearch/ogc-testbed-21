@@ -6,14 +6,10 @@ import { ApiLandingPage } from './components/ApiLandingPage';
 import { VoyagerInterface } from './components/VoyagerInterface';
 import { STACBrowserInterface } from './components/STACBrowserInterface';
 import { RecordsBrowserInterface } from './components/RecordsBrowserInterface';
-import { LoginButton } from './components/LoginButton';
-import { UserMenu } from './components/UserMenu';
-import { useAuth } from './contexts/AuthContext';
 import { searchVoyager, fetchFacets, buildQueryUrl, fetchDisplayTemplate } from './services/voyagerApi';
 import { getBaseUrl, setBaseUrl, getDisplayTemplateId, setDisplayTemplateId, getTransformApiUrl, setTransformApiUrl, getStandardsApiUrl, setStandardsApiUrl } from './config';
 import { transformVoyagerResponseToSTAC } from './services/stacTransform';
 import { transformVoyagerToOGCRecord } from './services/recordsTransform';
-import { getUserPreferences, setInterfaceMode } from './services/supabaseClient';
 
 interface AppState {
   interfaceMode: 'home' | 'voyager' | 'stac_browser' | 'ogc_records';
@@ -39,8 +35,6 @@ interface AppState {
 }
 
 function App() {
-  const { user, loading: authLoading } = useAuth();
-  const [isInitialized, setIsInitialized] = useState(false);
   const [state, setState] = useState<AppState>({
     interfaceMode: 'home',
     searchQuery: '',
@@ -65,25 +59,11 @@ function App() {
   });
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        const prefs = await getUserPreferences();
-        setState(prev => ({ ...prev, interfaceMode: prefs.interface_mode }));
-        setIsInitialized(true);
-      } catch (error) {
-        console.error('Failed to load user preferences:', error);
-        setIsInitialized(true);
-      }
-      loadInitialFacets();
-    };
-    init();
+    loadInitialFacets();
   }, []);
 
-  const handleInterfaceToggle = async (mode: 'home' | 'voyager' | 'stac_browser' | 'ogc_records') => {
+  const handleInterfaceToggle = (mode: 'home' | 'voyager' | 'stac_browser' | 'ogc_records') => {
     setState(prev => ({ ...prev, interfaceMode: mode }));
-    if (mode !== 'home') {
-      await setInterfaceMode(mode as 'voyager' | 'stac_browser' | 'ogc_records');
-    }
   };
 
   const loadInitialFacets = async () => {
@@ -319,7 +299,6 @@ function App() {
                   setState(prev => ({ ...prev, standardsApiUrl: url }));
                 }}
               />
-              {!authLoading && (user ? <UserMenu /> : <LoginButton />)}
             </div>
           </div>
           <SearchBar
@@ -335,8 +314,8 @@ function App() {
       {state.interfaceMode === 'home' ? (
         <ApiLandingPage
           voyagerApiUrl={`${state.baseUrl}api/rest`}
-          stacApiUrl={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stac-api`}
-          recordsApiUrl={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ogc-records-api`}
+          stacApiUrl="/api/stac-api"
+          recordsApiUrl="/api/ogc-records-api"
         />
       ) : state.interfaceMode === 'voyager' ? (
         <VoyagerInterface
@@ -367,8 +346,8 @@ function App() {
           isLoadingMore={state.isLoadingMore}
           error={state.error}
           baseUrl={state.baseUrl}
-          stacApiUrl={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stac-api`}
-          recordsApiUrl={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ogc-records-api`}
+          stacApiUrl="/api/stac-api"
+          recordsApiUrl="/api/ogc-records-api"
           onLoadMore={handleLoadMore}
         />
       ) : (
@@ -384,7 +363,7 @@ function App() {
           showFacetJson={state.showFacetJson}
           showResultsJson={state.showResultsJson}
           fullResponse={state.fullResponse}
-          recordsApiUrl={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ogc-records-api`}
+          recordsApiUrl="/api/ogc-records-api"
           onFacetChange={handleFacetChange}
           onToggleJsonDisplay={toggleJsonDisplay}
           onCopyJson={handleCopyJson}
