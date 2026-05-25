@@ -1,0 +1,22 @@
+{
+  "baseUrl": "https://ogc-sdi.voyagersearch.com/",
+  "voyager": {
+    "displayTemplateId": "D187992491DF",
+    "solrPath": "/solr/v0"
+  },
+  "transformApi": {
+    "url": "https://5d1fdadf-2421-4bad-b325-331537848150.spock.prod.repl.run/api/transform"
+  },
+  "standardsApi": {
+    "url": "https://voyager-rulesengine-shruti41.replit.app/api/standards"
+  },
+  "pagination": {
+    "defaultPageSize": 48,
+    "apiDefaultLimit": 100,
+    "defaultSort": "bytes desc"
+  },
+  "server": {
+    "port": 5002,
+    "basePath": "/ogc-testbed-21"
+  }
+}

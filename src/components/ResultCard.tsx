@@ -2,6 +2,7 @@ import { Image, Sparkles } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { generateVoyagerThumbnailUrl } from '../utils/thumbnailGenerator';
 import { fetchStandards, type Standard } from '../services/standardsApi';
+import { getApiBasePath } from '../config';
 
 interface ResultCardProps {
   result: any;
@@ -15,7 +16,7 @@ export function ResultCard({ result, isSelected = false, onClick, transformApiUr
   const generatedThumbnail = generateVoyagerThumbnailUrl(result, baseUrl);
   const thumbnail = generatedThumbnail || result.thumb || result.thumbnail || result.image || null;
   const title = result.name || result.title || result.id || 'Untitled';
-  const hasThumbnail = thumbnail && typeof thumbnail === 'string' && thumbnail.startsWith('http');
+  const hasThumbnail = thumbnail && typeof thumbnail === 'string' && (thumbnail.startsWith('http') || thumbnail.startsWith(`${getApiBasePath()}/api/`));
   const [showTransformed, setShowTransformed] = useState(false);
   const [transformedData, setTransformedData] = useState<any>(null);
   const [isTransforming, setIsTransforming] = useState(false);
@@ -65,24 +66,17 @@ export function ResultCard({ result, isSelected = false, onClick, transformApiUr
     setTransformError(null);
 
     try {
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transform-proxy`;
-
-      const requestBody: any = {
-        json: result,
-        standard: selectedStandard
-      };
-
-      if (transformApiUrl) {
-        requestBody.transformApiUrl = transformApiUrl;
-      }
+      const apiUrl = transformApiUrl || `${getApiBasePath()}/api/transform`;
 
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({
+          json: result,
+          standard: selectedStandard
+        }),
       });
 
       if (!response.ok) {
@@ -128,10 +122,6 @@ export function ResultCard({ result, isSelected = false, onClick, transformApiUr
   };
 
   const displayAttributes = showTransformed ? getTransformedAttributes() : attributes;
-
-  console.log('ResultCard - result:', result);
-  console.log('ResultCard - thumbnail:', thumbnail);
-  console.log('ResultCard - hasThumbnail:', hasThumbnail);
 
   return (
     <div

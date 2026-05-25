@@ -1,3 +1,5 @@
+import { getApiBasePath } from '../config';
+
 export interface VoyagerPreviewData {
   id?: string;
   format?: string;
@@ -11,7 +13,6 @@ export function generateVoyagerThumbnailUrl(doc: VoyagerPreviewData, baseUrl?: s
   }
 
   try {
-    const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voyager-proxy`;
     const thumbnailPath = `/api/rest/content/${doc.id}/thumb`;
     const params = new URLSearchParams();
     params.append('path', thumbnailPath);
@@ -26,7 +27,7 @@ export function generateVoyagerThumbnailUrl(doc: VoyagerPreviewData, baseUrl?: s
       params.append('baseUrl', baseUrl);
     }
 
-    const thumbnailUrl = `${proxyUrl}?${params.toString()}`;
+    const thumbnailUrl = `${getApiBasePath()}/api/voyager-proxy?${params.toString()}`;
 
     return thumbnailUrl;
   } catch (error) {

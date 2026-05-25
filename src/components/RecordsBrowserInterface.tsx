@@ -83,8 +83,6 @@ export function RecordsBrowserInterface({
       fetch(recordsApiUrl, {
         headers: {
           'Accept': 'text/html',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
         }
       })
         .then(response => response.text())
@@ -163,6 +161,30 @@ export function RecordsBrowserInterface({
               <p className="text-sm text-gray-600">OGC API - Records compliant metadata</p>
             </div>
             <div className="flex gap-2">
+              <a
+                href={recordsApiUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Landing
+              </a>
+              <a
+                href={`${recordsApiUrl}/collections`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Collections
+              </a>
+              <a
+                href={`${recordsApiUrl}/collections/records/items${searchQuery && searchQuery !== '*:*' ? `?q=${encodeURIComponent(searchQuery)}` : ''}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Items
+              </a>
               <a
                 href={`${recordsApiUrl}/conformance`}
                 target="_blank"

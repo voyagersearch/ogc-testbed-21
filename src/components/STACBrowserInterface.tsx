@@ -14,6 +14,7 @@ interface STACBrowserInterfaceProps {
   baseUrl: string;
   stacApiUrl: string;
   recordsApiUrl: string;
+  searchQuery: string;
   onLoadMore: () => void;
 }
 
@@ -27,8 +28,10 @@ export function STACBrowserInterface({
   baseUrl,
   stacApiUrl,
   recordsApiUrl,
+  searchQuery,
   onLoadMore
 }: STACBrowserInterfaceProps) {
+  const qSuffix = searchQuery && searchQuery !== '*:*' ? `?q=${encodeURIComponent(searchQuery)}` : '';
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [viewMode, setViewMode] = useState<'split' | 'map' | 'grid'>('split');
   const [showSTAC, setShowSTAC] = useState(false);
@@ -148,6 +151,38 @@ export function STACBrowserInterface({
 
             <div className="h-6 w-px bg-gray-300 mx-2"></div>
 
+            <a
+              href={stacApiUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
+            >
+              Catalog
+            </a>
+            <a
+              href={`${stacApiUrl}/collections`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
+            >
+              Collections
+            </a>
+            <a
+              href={`${stacApiUrl}/collections/voyager/items${qSuffix}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
+            >
+              Items
+            </a>
+            <a
+              href={`${stacApiUrl}/search${qSuffix}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
+            >
+              Search
+            </a>
             <a
               href={`${stacApiUrl}/conformance`}
               target="_blank"
