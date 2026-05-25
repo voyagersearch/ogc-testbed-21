@@ -247,8 +247,23 @@ export function transformVoyagerToSTACItem(doc: VoyagerDoc, baseUrl: string = ''
   const links: STACItem['links'] = [
     {
       rel: 'self',
-      href: `${baseUrl}/items/${doc.id}`,
+      href: `${baseUrl}/collections/voyager/items/${doc.id}`,
       type: 'application/geo+json'
+    },
+    {
+      rel: 'parent',
+      href: `${baseUrl}/collections/voyager`,
+      type: 'application/json'
+    },
+    {
+      rel: 'collection',
+      href: `${baseUrl}/collections/voyager`,
+      type: 'application/json'
+    },
+    {
+      rel: 'root',
+      href: baseUrl,
+      type: 'application/json'
     }
   ];
 
@@ -269,7 +284,8 @@ export function transformVoyagerToSTACItem(doc: VoyagerDoc, baseUrl: string = ''
     bbox: bbox || [],
     properties: properties,
     links: links,
-    assets: assets
+    assets: assets,
+    collection: 'voyager'
   };
 
   return stacItem;

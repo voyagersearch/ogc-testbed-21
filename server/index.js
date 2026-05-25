@@ -13,6 +13,7 @@ const app = express();
 const PORT = config.server.port || 5002;
 const basePath = (config.server.basePath || '').replace(/\/$/, '');
 
+app.set('trust proxy', true);
 app.use(cors());
 app.use(express.json());
 

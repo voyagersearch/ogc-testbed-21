@@ -77,7 +77,7 @@ function App() {
         searchVoyager('*:*', {})
       ]);
 
-      const { items: stacItems } = transformVoyagerResponseToSTAC(searchResponse, state.baseUrl);
+      const { items: stacItems } = transformVoyagerResponseToSTAC(searchResponse, `${getApiBasePath()}/api/stac-api`);
       const ogcRecords = searchResponse.response.docs.map((doc: any) =>
         transformVoyagerToOGCRecord(doc, state.baseUrl)
       );
@@ -112,7 +112,7 @@ function App() {
         searchVoyager(state.searchQuery, state.selectedFacets)
       ]);
 
-      const { items: stacItems } = transformVoyagerResponseToSTAC(searchResponse, state.baseUrl);
+      const { items: stacItems } = transformVoyagerResponseToSTAC(searchResponse, `${getApiBasePath()}/api/stac-api`);
       const ogcRecords = searchResponse.response.docs.map((doc: any) =>
         transformVoyagerToOGCRecord(doc, state.baseUrl)
       );
@@ -152,7 +152,7 @@ function App() {
         48
       );
 
-      const { items: newStacItems } = transformVoyagerResponseToSTAC(searchResponse, state.baseUrl);
+      const { items: newStacItems } = transformVoyagerResponseToSTAC(searchResponse, `${getApiBasePath()}/api/stac-api`);
       const newOgcRecords = searchResponse.response.docs.map((doc: any) =>
         transformVoyagerToOGCRecord(doc, state.baseUrl)
       );
@@ -175,7 +175,16 @@ function App() {
   };
 
   const handleCopyUrl = () => {
-    const url = buildQueryUrl(state.searchQuery, state.selectedFacets);
+    const q = state.searchQuery || '*:*';
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    let url: string;
+    if (state.interfaceMode === 'stac_browser') {
+      url = `${origin}${getApiBasePath()}/api/stac-api/search?q=${encodeURIComponent(q)}`;
+    } else if (state.interfaceMode === 'ogc_records') {
+      url = `${origin}${getApiBasePath()}/api/ogc-records-api/collections/records/items?q=${encodeURIComponent(q)}`;
+    } else {
+      url = buildQueryUrl(state.searchQuery, state.selectedFacets);
+    }
     navigator.clipboard.writeText(url);
   };
 
@@ -239,7 +248,7 @@ function App() {
         searchVoyager(state.searchQuery, newSelectedFacets)
       ]);
 
-      const { items: stacItems } = transformVoyagerResponseToSTAC(searchResponse, state.baseUrl);
+      const { items: stacItems } = transformVoyagerResponseToSTAC(searchResponse, `${getApiBasePath()}/api/stac-api`);
       const ogcRecords = searchResponse.response.docs.map((doc: any) =>
         transformVoyagerToOGCRecord(doc, state.baseUrl)
       );
@@ -348,6 +357,7 @@ function App() {
           baseUrl={state.baseUrl}
           stacApiUrl={`${getApiBasePath()}/api/stac-api`}
           recordsApiUrl={`${getApiBasePath()}/api/ogc-records-api`}
+          searchQuery={state.searchQuery}
           onLoadMore={handleLoadMore}
         />
       ) : (

@@ -12,6 +12,7 @@
   },
   "pagination": {
     "defaultPageSize": 48,
+    "apiDefaultLimit": 100,
     "defaultSort": "bytes desc"
   },
   "server": {

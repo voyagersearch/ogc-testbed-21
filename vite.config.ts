@@ -153,7 +153,7 @@ export default defineConfig({
             }
 
             if (pathname === '/collections/records/items') {
-              const limit = parseInt(url.searchParams.get('limit') || '10');
+              const limit = parseInt(url.searchParams.get('limit') || String(config.pagination?.apiDefaultLimit ?? 100));
               const offset = parseInt(url.searchParams.get('offset') || '0');
               const q = url.searchParams.get('q') || '*:*';
               const voyagerUrl = `${solrUrl}/select?q=${encodeURIComponent(q)}&wt=json&rows=${limit}&start=${offset}`;
@@ -264,8 +264,65 @@ export default defineConfig({
               return;
             }
 
+            const itemsMatch = pathname.match(/^\/collections\/([^/]+)\/items$/);
+            if (itemsMatch) {
+              const collectionId = itemsMatch[1];
+              if (collectionId !== 'voyager') {
+                res.statusCode = 404;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ error: 'Collection not found' }));
+                return;
+              }
+              const limit = parseInt(url.searchParams.get('limit') || String(config.pagination?.apiDefaultLimit ?? 100));
+              const offset = parseInt(url.searchParams.get('offset') || '0');
+              const q = url.searchParams.get('q') || '*:*';
+              const voyagerUrl = `${solrUrl}/select?q=${encodeURIComponent(q)}&wt=json&rows=${limit}&start=${offset}`;
+              const voyagerResponse = await fetch(voyagerUrl);
+              const voyagerData = await voyagerResponse.json();
+              const docs = voyagerData.response?.docs || [];
+
+              const totalResults = voyagerData.response?.numFound || 0;
+              const qSuffix = q !== '*:*' ? `&q=${encodeURIComponent(q)}` : '';
+              const links: any[] = [
+                { rel: 'self', href: `${selfBaseUrl}/collections/${collectionId}/items?limit=${limit}&offset=${offset}${qSuffix}`, type: 'application/geo+json' },
+                { rel: 'root', href: selfBaseUrl, type: 'application/json' },
+                { rel: 'collection', href: `${selfBaseUrl}/collections/${collectionId}`, type: 'application/json' }
+              ];
+              if (offset > 0) {
+                links.push({ rel: 'prev', href: `${selfBaseUrl}/collections/${collectionId}/items?limit=${limit}&offset=${Math.max(0, offset - limit)}${qSuffix}`, type: 'application/geo+json' });
+              }
+              if (offset + limit < totalResults) {
+                links.push({ rel: 'next', href: `${selfBaseUrl}/collections/${collectionId}/items?limit=${limit}&offset=${offset + limit}${qSuffix}`, type: 'application/geo+json' });
+              }
+
+              res.setHeader('Content-Type', 'application/geo+json');
+              res.end(JSON.stringify({
+                type: 'FeatureCollection',
+                features: docs.map((doc: any) => ({
+                  type: 'Feature',
+                  stac_version: '1.0.0',
+                  id: doc.id,
+                  geometry: null,
+                  bbox: [],
+                  properties: { datetime: null, title: doc.title || doc.name || doc.id },
+                  links: [
+                    { rel: 'self', href: `${selfBaseUrl}/collections/voyager/items/${doc.id}`, type: 'application/geo+json' },
+                    { rel: 'parent', href: `${selfBaseUrl}/collections/voyager`, type: 'application/json' },
+                    { rel: 'collection', href: `${selfBaseUrl}/collections/voyager`, type: 'application/json' },
+                    { rel: 'root', href: selfBaseUrl, type: 'application/json' }
+                  ],
+                  assets: {},
+                  collection: 'voyager'
+                })),
+                links,
+                numberMatched: totalResults,
+                numberReturned: docs.length
+              }));
+              return;
+            }
+
             if (pathname === '/search') {
-              const limit = parseInt(url.searchParams.get('limit') || '10');
+              const limit = parseInt(url.searchParams.get('limit') || String(config.pagination?.apiDefaultLimit ?? 100));
               const q = url.searchParams.get('q') || '*:*';
               const voyagerUrl = `${solrUrl}/select?q=${encodeURIComponent(q)}&wt=json&rows=${limit}`;
               const voyagerResponse = await fetch(voyagerUrl);

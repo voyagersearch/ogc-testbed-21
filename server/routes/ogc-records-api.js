@@ -226,6 +226,13 @@ function generateHTMLResponse(data, title) {
 </html>`;
 }
 
+function getSelfBaseUrl(req, config) {
+  const basePath = (config.server?.basePath || '').replace(/\/$/, '');
+  const forwardedHost = req.get('x-forwarded-host');
+  const host = forwardedHost ? forwardedHost.split(',')[0].trim() : req.get('host');
+  return `${req.protocol}://${host}${basePath}/api/ogc-records-api`;
+}
+
 export function createOGCRecordsRouter() {
   const router = Router();
   const config = loadConfig();
@@ -246,7 +253,7 @@ export function createOGCRecordsRouter() {
   });
 
   router.get('/collections', (req, res) => {
-    const baseUrl = `${req.protocol}://${req.get('host')}/api/ogc-records-api`;
+    const baseUrl = getSelfBaseUrl(req, config);
     res.json({
       links: [
         { href: `${baseUrl}/collections`, rel: 'self', type: 'application/json', title: 'This document' }
@@ -270,7 +277,7 @@ export function createOGCRecordsRouter() {
   router.get('/collections/records/items/:itemId', async (req, res) => {
     try {
       const { itemId } = req.params;
-      const baseUrl = `${req.protocol}://${req.get('host')}/api/ogc-records-api`;
+      const baseUrl = getSelfBaseUrl(req, config);
 
       const voyagerUrl = `${voyagerSolrUrl}/select?q=id:${encodeURIComponent(itemId)}&wt=json&rows=1`;
       const voyagerResponse = await fetch(voyagerUrl);
@@ -292,8 +299,8 @@ export function createOGCRecordsRouter() {
 
   router.get('/collections/records/items', async (req, res) => {
     try {
-      const baseUrl = `${req.protocol}://${req.get('host')}/api/ogc-records-api`;
-      const limit = parseInt(req.query.limit || '10');
+      const baseUrl = getSelfBaseUrl(req, config);
+      const limit = parseInt(req.query.limit || String(config.pagination?.apiDefaultLimit ?? 100));
       const offset = parseInt(req.query.offset || '0');
       const q = req.query.q || '*:*';
       const bbox = req.query.bbox;
@@ -360,7 +367,7 @@ export function createOGCRecordsRouter() {
   });
 
   router.get('/collections/records', (req, res) => {
-    const baseUrl = `${req.protocol}://${req.get('host')}/api/ogc-records-api`;
+    const baseUrl = getSelfBaseUrl(req, config);
     res.json({
       id: 'records',
       title: 'Geospatial Records',
@@ -375,7 +382,7 @@ export function createOGCRecordsRouter() {
   });
 
   router.get('/', (req, res) => {
-    const baseUrl = `${req.protocol}://${req.get('host')}/api/ogc-records-api`;
+    const baseUrl = getSelfBaseUrl(req, config);
     const acceptHeader = req.get('Accept') || '';
     const wantsHtml = acceptHeader.includes('text/html');
 

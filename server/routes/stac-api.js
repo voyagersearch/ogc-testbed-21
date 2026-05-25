@@ -149,7 +149,9 @@ function transformVoyagerToSTACItem(doc, baseUrl) {
 
   const links = [
     { rel: 'self', href: `${baseUrl}/collections/voyager/items/${doc.id}`, type: 'application/geo+json' },
-    { rel: 'collection', href: `${baseUrl}/collections/voyager`, type: 'application/json' }
+    { rel: 'parent', href: `${baseUrl}/collections/voyager`, type: 'application/json' },
+    { rel: 'collection', href: `${baseUrl}/collections/voyager`, type: 'application/json' },
+    { rel: 'root', href: baseUrl, type: 'application/json' }
   ];
 
   if (doc.fullpath || doc.absolute_path) {
@@ -174,13 +176,20 @@ function transformVoyagerToSTACItem(doc, baseUrl) {
   };
 }
 
+function getSelfBaseUrl(req, config) {
+  const basePath = (config.server?.basePath || '').replace(/\/$/, '');
+  const forwardedHost = req.get('x-forwarded-host');
+  const host = forwardedHost ? forwardedHost.split(',')[0].trim() : req.get('host');
+  return `${req.protocol}://${host}${basePath}/api/stac-api`;
+}
+
 export function createSTACRouter() {
   const router = Router();
   const config = loadConfig();
   const voyagerSolrUrl = `${config.baseUrl.replace(/\/$/, '')}${config.voyager.solrPath}`;
 
   router.get('/', (req, res) => {
-    const baseUrl = `${req.protocol}://${req.get('host')}/api/stac-api`;
+    const baseUrl = getSelfBaseUrl(req, config);
     res.json({
       type: 'Catalog',
       stac_version: '1.0.0',
@@ -213,7 +222,7 @@ export function createSTACRouter() {
 
   router.get('/collections', async (req, res) => {
     try {
-      const baseUrl = `${req.protocol}://${req.get('host')}/api/stac-api`;
+      const baseUrl = getSelfBaseUrl(req, config);
 
       const voyagerUrl = `${voyagerSolrUrl}/select?q=*:*&wt=json&rows=0`;
       const voyagerResponse = await fetch(voyagerUrl);
@@ -253,7 +262,7 @@ export function createSTACRouter() {
 
   router.get('/collections/:collectionId', async (req, res) => {
     try {
-      const baseUrl = `${req.protocol}://${req.get('host')}/api/stac-api`;
+      const baseUrl = getSelfBaseUrl(req, config);
       const { collectionId } = req.params;
 
       if (collectionId !== 'voyager') {
@@ -290,7 +299,7 @@ export function createSTACRouter() {
 
   router.get('/collections/:collectionId/items/:itemId', async (req, res) => {
     try {
-      const baseUrl = `${req.protocol}://${req.get('host')}/api/stac-api`;
+      const baseUrl = getSelfBaseUrl(req, config);
       const { collectionId, itemId } = req.params;
 
       if (collectionId !== 'voyager') {
@@ -317,17 +326,18 @@ export function createSTACRouter() {
 
   router.get('/collections/:collectionId/items', async (req, res) => {
     try {
-      const baseUrl = `${req.protocol}://${req.get('host')}/api/stac-api`;
+      const baseUrl = getSelfBaseUrl(req, config);
       const { collectionId } = req.params;
 
       if (collectionId !== 'voyager') {
         return res.status(404).json({ error: 'Collection not found' });
       }
 
-      const limit = parseInt(req.query.limit || '10');
+      const limit = parseInt(req.query.limit || String(config.pagination?.apiDefaultLimit ?? 100));
       const offset = parseInt(req.query.offset || '0');
+      const q = req.query.q || '*:*';
 
-      const voyagerUrl = `${voyagerSolrUrl}/select?q=*:*&wt=json&rows=${limit}&start=${offset}`;
+      const voyagerUrl = `${voyagerSolrUrl}/select?q=${encodeURIComponent(q)}&wt=json&rows=${limit}&start=${offset}`;
       const voyagerResponse = await fetch(voyagerUrl);
       const voyagerData = await voyagerResponse.json();
 
@@ -336,14 +346,24 @@ export function createSTACRouter() {
 
       const items = docs.map(doc => transformVoyagerToSTACItem(doc, baseUrl));
 
+      const qSuffix = q !== '*:*' ? `&q=${encodeURIComponent(q)}` : '';
+      const links = [
+        { rel: 'self', href: `${baseUrl}/collections/${collectionId}/items?limit=${limit}&offset=${offset}${qSuffix}`, type: 'application/geo+json' },
+        { rel: 'root', href: baseUrl, type: 'application/json' },
+        { rel: 'collection', href: `${baseUrl}/collections/${collectionId}`, type: 'application/json' }
+      ];
+      if (offset > 0) {
+        links.push({ rel: 'prev', href: `${baseUrl}/collections/${collectionId}/items?limit=${limit}&offset=${Math.max(0, offset - limit)}${qSuffix}`, type: 'application/geo+json' });
+      }
+      if (offset + limit < totalResults) {
+        links.push({ rel: 'next', href: `${baseUrl}/collections/${collectionId}/items?limit=${limit}&offset=${offset + limit}${qSuffix}`, type: 'application/geo+json' });
+      }
+
       res.set('Content-Type', 'application/geo+json');
       res.json({
         type: 'FeatureCollection',
         features: items,
-        links: [
-          { rel: 'self', href: `${baseUrl}/collections/${collectionId}/items?limit=${limit}&offset=${offset}`, type: 'application/geo+json' },
-          { rel: 'collection', href: `${baseUrl}/collections/${collectionId}`, type: 'application/json' }
-        ],
+        links,
         numberMatched: totalResults,
         numberReturned: items.length
       });
@@ -355,8 +375,8 @@ export function createSTACRouter() {
 
   router.get('/search', async (req, res) => {
     try {
-      const baseUrl = `${req.protocol}://${req.get('host')}/api/stac-api`;
-      const limit = parseInt(req.query.limit || '10');
+      const baseUrl = getSelfBaseUrl(req, config);
+      const limit = parseInt(req.query.limit || String(config.pagination?.apiDefaultLimit ?? 100));
       const bbox = req.query.bbox;
       const q = req.query.q || '*:*';
 

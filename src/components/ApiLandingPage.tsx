@@ -27,7 +27,7 @@ export function ApiLandingPage({ voyagerApiUrl, stacApiUrl, recordsApiUrl }: Api
       color: 'green',
       endpoints: [
         { path: '/collections', label: 'Collections' },
-        { path: '/collections/spatial-data/items', label: 'Items' },
+        { path: '/collections/voyager/items', label: 'Items' },
         { path: '/conformance', label: 'Conformance' }
       ],
       baseUrl: stacApiUrl
