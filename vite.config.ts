@@ -189,6 +189,19 @@ export default defineConfig({
               return;
             }
 
+            const unknownCollection = pathname.match(/^\/collections\/([^/]+)(\/.*)?$/);
+            if (unknownCollection) {
+              res.statusCode = 404;
+              res.setHeader('Content-Type', 'application/problem+json');
+              res.end(JSON.stringify({
+                type: 'about:blank',
+                title: 'Collection not found',
+                status: 404,
+                detail: `No collection with id '${unknownCollection[1]}'`
+              }));
+              return;
+            }
+
             // Landing page
             const landingPage = {
               title: 'OGC API - Records',
