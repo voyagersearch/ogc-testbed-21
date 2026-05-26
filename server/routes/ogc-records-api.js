@@ -405,5 +405,22 @@ export function createOGCRecordsRouter() {
     }
   });
 
+  router.get('/collections/:collectionId', (req, res) => {
+    res.status(404).set('Content-Type', 'application/problem+json').json({
+      type: 'about:blank',
+      title: 'Collection not found',
+      status: 404,
+      detail: `No collection with id '${req.params.collectionId}'`
+    });
+  });
+  router.get('/collections/:collectionId/*', (req, res) => {
+    res.status(404).set('Content-Type', 'application/problem+json').json({
+      type: 'about:blank',
+      title: 'Collection not found',
+      status: 404,
+      detail: `No collection with id '${req.params.collectionId}'`
+    });
+  });
+
   return router;
 }
